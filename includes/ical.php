@@ -198,6 +198,14 @@ class ZCiCalNode {
 	var $prev=null;
 
 	/**
+	 * array for configuration settings
+	 *
+	 * @var array
+	 */
+
+	var $config = array();
+
+	/**
 	 * Create ZCiCalNode
 	 *
 	 * @param string $_name Name of node
@@ -239,6 +247,8 @@ class ZCiCalNode {
 			echo " child of " . $_parent->getName() . "/" . count($this->parentnode->child);
 		echo "<br/>";
 		*/
+		$this->config['lineending'] = "\r\n";
+		$this->config['linewrap'] = true;
 	}
 
 	/**
@@ -363,7 +373,7 @@ class ZCiCalNode {
 			//die("levels nested too deep<br/>\n");
 			throw new Exception("levels nested too deep");
 		}
-		$txtstr .= "BEGIN:" . $node->getName() . "\r\n";
+		$txtstr .= "BEGIN:" . $node->getName() . $this->config['lineending'];
 		if(property_exists($node,"data"))
 		foreach ($node->data as $d){
 			if(is_array($d))
@@ -423,9 +433,10 @@ class ZCiCalNode {
 		}
 		if(property_exists($node,"child"))
 		foreach ($node->child as $c){
+			$node->config = $this->config;
 			$txtstr .= $node->export($c,$level + 1);
 		}
-		$txtstr .= "END:" . $node->getName() . "\r\n";
+		$txtstr .= "END:" . $node->getName() . $this->config['lineending'];
 		return $txtstr;
 	}
 
@@ -454,13 +465,16 @@ class ZCiCalNode {
 		$line = str_replace(array("\r\n","\n\r","\n","\r"),'\n',$line);
 		//$line = str_replace(array(',',';','\\'), array('\\,','\\;','\\\\'),$line);
 		//$line =strip_tags($line);
+		if (!$this->config['linewrap']) {
+			return $txtstr . $line . $this->config['lineending'];
+		}
 		$linecount = 0;
 		while (strlen($line) > 0) {
 			$linewidth = ($linecount == 0? 75 : 74);
 			$linesize = (strlen($line) > $linewidth? $linewidth: strlen($line));
 			if($linecount > 0)
 				$txtstr .= " ";
-			$txtstr .= substr($line,0,$linesize) . "\r\n";
+			$txtstr .= substr($line,0,$linesize) . $this->config['lineending'];
 			$linecount += 1;
 			$line = substr($line,$linewidth);
 		}
@@ -712,7 +726,9 @@ function countVenues() {
  * @return string an iCalendar formatted string
  */
 
-function export() {
+function export($linewrap=true, $lineending="\r\n") {
+	$this->tree->config['linewrap'] = $linewrap;
+	$this->tree->config['lineending'] = $lineending;
 	return $this->tree->export($this->tree);
 }
 
