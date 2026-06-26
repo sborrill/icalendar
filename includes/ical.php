@@ -370,6 +370,10 @@ class ZCiCalNode {
 			{
 				foreach ($d as $c)
 				{
+					// Skip array of objects to stop getParameters() method
+					// being called on an array rather than an object
+					// XXX add recursion if needed
+					if (is_array($c)) continue;
 					//$txtstr .= $node->export($c,$level + 1);
 					$p = "";
 					$params = @$c->getParameters();
