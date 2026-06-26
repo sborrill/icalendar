@@ -443,6 +443,11 @@ class ZCiCalNode {
 		$values = $d->getValues();
 		// don't think we need this, Sunbird does not like it in the EXDATE field
 		//$values = str_replace(",", "\\,", $values);
+		switch (trim($d->getName())) {
+		case "":
+		case "X-LIC-ERROR":
+			return;
+		}
 
 		$line = $d->getName() . $p . ":" . $values;
 		$line = str_replace(array("<br>","<BR>","<br/>","<BR/"),"\\n",$line);
